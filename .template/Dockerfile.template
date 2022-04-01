@@ -1,0 +1,6 @@
+FROM arch-aur-builder:latest
+
+USER build
+
+# RUN step is added via management script
+#RUN yay --sync --noconfirm --noprogressbar --quiet ##DEPENDENCIES##

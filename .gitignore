@@ -1,0 +1,26 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+*/package
+
+# Ignore everything but gitignore
+/**
+!/.gitignore
+
+# root project
+!/LICENSE
+!/README
+!/arch-builder.sh
+
+# builders
+!/arch-base-builder
+!/arch-base-builder/**
+!/arch-aur-builder
+!/arch-aur-builder/**
+
+# required packages
+!/yay
+!/yay/**
+
+# template
+!/.template
+!/.template/**
