@@ -34,6 +34,26 @@ Run the build step for your initialized package:
 ./ungoogled-chromium/manage.sh build
 ```
 
+## Update
+
+First, update the management tool:
+
+```shell
+git pull --prune
+```
+
+Then, update the base images:
+
+```shell
+./arch-builder.sh update
+```
+
+Finally, update the specific build images for your packages:
+
+```shell
+./ungoogled-chromium/manage.sh update
+```
+
 ## Remove
 
 First, clean up built docker images:
