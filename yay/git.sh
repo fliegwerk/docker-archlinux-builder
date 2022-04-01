@@ -25,6 +25,8 @@ update() {
     cd "$script_dir"
     git clone "$GIT_URL" "$GIT_ROOT_NAME"
   fi
+  # allow user in docker container write access inside this folder
+  chmod 777 "$package_path"
 }
 
 clean() {
