@@ -18,64 +18,80 @@ cd docker-archlinux-builder
 Prepare the build environment:
 
 ```shell
-./arch-builder.sh prepare
+./arch-builder.sh create
 ```
 
 Initialize a new build setup for your package.
-Get git url if your package is an AUR package.
+Enter the package name of the AUR package you want to build:
 
 ```shell
-./arch-builder.sh init https://aur.archlinux.org/ungoogled-chromium.git
+./arch-builder.sh get-aur ungoogled-chromium
 ```
 
-Run the build step for your initialized package:
+Or if you want to build an official package, use:
 
 ```shell
-./ungoogled-chromium/manage.sh build
+./arch-builder.sh get-official linux
 ```
+
+Build your initialized package:
+
+```shell
+./arch-builder.sh build ungoogled-chromium
+```
+
+That's it!
 
 ## Update
 
-First, update the management tool:
+Because Archlinux is a rolling-release distribution,
+it's important that you keep the arch-builder image up-to-date.
+The build step updates the system before building the specified package.
+Some dependencies can only be updated, if you rebuild the arch-builder image.
+
+### Update build instructions
+
+Simply get the package again.
+The arch-builder script detects an existing repository and only pulls in the latest changes:
 
 ```shell
-git pull --prune
+./arch-builder.sh get-aur ungoogled-chromium
 ```
 
-Then, update the base images:
+And build your package with the new instruction set:
 
 ```shell
-./arch-builder.sh update
+./arch-builder.sh build ungoogled-chromium
 ```
 
-Finally, update the specific build images for your packages:
+### Update arch-builder image
+
+Simply call:
 
 ```shell
-./ungoogled-chromium/manage.sh update
+./arch-builder.sh rebuild
 ```
 
 ## Remove
 
-First, clean up built docker images:
+Remove the arch-builder image:
 
 ```shell
-./ungoogled-chromium/manage.sh clean
+./arch-builder.sh remove
 ```
 
-Then, clean up the base system:
-
-```shell
-./arch-builder.sh clean
-```
-
-Finally, remove the git repository:
+Delete the git repository:
 
 ```shell
 cd ..
 rm -rf docker-archlinux-builder
 ```
 
-## Acknowledgements
+## Issues and Contributing
 
-Many thanks to [Spencer Rinehart](https://github.com/nubs)
-for his awesome project [docker-arch-build](https://github.com/nubs/docker-arch-build).
+If you have any issues or suggestions, feel free to open an [issue](https://github.com/fliegwerk/docker-archlinux-builder/issues)
+or write us: <https://www.fliegwerk.com/contact>
+
+## Project Information
+
+This is a project by fliegwerk: <https://www.fliegwerk.com/>

@@ -14,17 +14,8 @@
 !/LICENSE
 !/README
 !/arch-builder.sh
+!/lib.sh
 
-# builders
-!/arch-base-builder
-!/arch-base-builder/**
-!/arch-aur-builder
-!/arch-aur-builder/**
-
-# required packages
-!/yay
-!/yay/**
-
-# template
-!/.template
-!/.template/**
+# builder
+!/.builder
+!/.builder/**

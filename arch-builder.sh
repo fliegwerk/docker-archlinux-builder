@@ -2,60 +2,87 @@
 
 set -eu
 
+. ./lib.sh
+
 script_dir="$(dirname "$(realpath "$0")")"
 script_name="$(basename "$(realpath "$0")")"
 
-# parse action
+help="Usage: ${script_name} [OPTION]... <COMMAND>
+
+Options:
+  -h, --help   print this help
+
+Commands:
+  create                            Creates the arch-builder if it does not exist
+  rebuild                           Rebuilds the arch-builder image
+  remove                            Removes the arch-builder image
+  get-official <package>            Gets/Updates the build instructions for an official package
+  get-aur <package>                 Gets/Updates the build instructions for an AUR package
+  build <package>                   Builds the package with the arch-builder
+  add-trusted-key <package> <key>   Adds a trusted third party key to the package build process
+"
+
+usage="Usage: ${script_name} <create|rebuild|remove|get-official|get-aur>"
+
 if [ "$#" -lt "1" ]; then
-  printf 'Usage: %s <prepare|clean|update|init>\n' "$script_name"
+  printf '%s\n' "$usage"
   exit 1
 fi
-action="$1"
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  printf '%s\n' "$help"
+  exit 0
+fi
 
-case "$action" in
-  prepare)
-    "$script_dir/arch-base-builder/manage.sh" build
-    "$script_dir/yay/manage.sh" build
-    "$script_dir/arch-aur-builder/manage.sh" build
-    printf 'Created builders\n'
+case "$1" in
+  create)
+    create_builder_image
     ;;
-  clean)
-    "$script_dir/arch-aur-builder/manage.sh" clean
-    "$script_dir/yay/manage.sh" clean
-    "$script_dir/arch-base-builder/manage.sh" clean
-    printf 'Cleaned builders\n'
+  rebuild)
+    remove_builder_image
+    create_builder_image
     ;;
-  update)
-    "$script_dir/arch-base-builder/manage.sh" update
-    "$script_dir/yay/manage.sh" update
-    "$script_dir/arch-aur-builder/manage.sh" update
-    printf 'Updated builders\n'
+  remove)
+    remove_builder_image
     ;;
-  init)
-    if [ "$#" -lt "2" ]; then
-      printf 'Git URL required that points to the git repository which contains the PKGBUILD\n'
+  get-official)
+    if [ "$#" -lt 2 ]; then
+      printf 'Package name required\n'
       exit 1
     fi
-    git_url="$2"
-    package_name="$(echo "$git_url" | rev | awk -F 'tig.' '{print $2;}' | awk -F '/' '{print $1;}' | rev)"
-    printf 'Initialize build environment for package: %s (%s)\n' "$package_name" "$git_url"
-
-    # generate folder structure
-    package_dir="$script_dir/$package_name"
-    mkdir --parents "$package_dir"
-    for file in "$script_dir/.template"/*; do
-      filename="$(basename "$file")"
-      dest_path="$package_dir/$filename"
-
-      printf 'Copy %s...\n' "$filename"
-      cp --force "$file" "$dest_path"
-      sed -i "s|##PACKAGE_NAME##|${package_name}|g" "$dest_path"
-      sed -i "s|##GIT_URL##|${git_url}|g" "$dest_path"
-    done
-    printf 'Initalized build environment.\n'
+    package="$2"
+    get_official_package_repo "$package"
+    ;;
+  get-aur)
+    if [ "$#" -lt 2 ]; then
+      printf 'Package name required\n'
+      exit 1
+    fi
+    package="$2"
+    get_aur_package_repo "$package"
+    ;;
+  build)
+    if [ "$#" -lt 2 ]; then
+      printf 'Package name required\n'
+      exit 1
+    fi
+    package="$2"
+    build_package "$package"
+    ;;
+  add-trusted-key)
+    if [ "$#" -lt 2 ]; then
+      printf 'Package name required\n'
+      exit 1
+    fi
+    package="$2"
+    if [ "$#" -lt 3 ]; then
+      printf 'Trusted key required\n'
+      exit 1
+    fi
+    key="$3"
+    add_trusted_key "$package" "$key"
     ;;
   *)
-    printf 'Unknown action: %s\n' "$1"
+    printf 'Unknown command: %s\n' "$1"
     exit 1
     ;;
 esac
