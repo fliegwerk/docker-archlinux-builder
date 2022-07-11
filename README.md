@@ -11,7 +11,7 @@ You need a working docker installation and some core utilities.
 Clone this repository:
 
 ```shell
-git clone https://github.com/fussel178/docker-archlinux-builder.git
+git clone https://github.com/fliegwerk/docker-archlinux-builder.git
 cd docker-archlinux-builder
 ```
 
