@@ -1,0 +1,128 @@
+#!/bin/sh
+
+IMAGE_NAME="makepkg:latest"
+
+script_name="$(basename "$(realpath "$0")")"
+script_dir="$(dirname "$(realpath "$0")")"
+base_dir="${script_dir}/.."
+context_dir="${base_dir}/.context"
+
+full_help="Usage: ${script_name} [options] <update|base-update|build|remove|is-ready|docker>
+
+Manages the makepkg docker image to build pacman packages on other systems.
+
+Commands:
+  update                   Updates the docker image and uses already cached layers
+  base-update              Pulls the base image invalidating caches and updates the docker image
+  build <cwd> <args>       Builds a pacman package using the specified working directory
+  remove                   Removes the docker image and prunes cached layers
+  is-ready                 Exits successfully if the docker image is ready
+  docker                   Runs an arbitrary docker command in the makepkg docker context
+
+Options:
+  -h, --help     Shows this help
+  -V, --version  Shows the version of this toolset
+"
+
+if [ "$(id -u)" = 0 ]; then
+  DOCKER_SUDO=""
+else
+  DOCKER_SUDO="sudo"
+fi
+
+if [ "$#" -lt 1 ]; then
+  printf 'Usage: %s [options] <update|base-update|build|remove|is-ready|docker>\n' "$script_name"
+  exit 1
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  printf '%s\n' "$full_help"
+  exit 0
+fi
+
+if [ "$1" = "-V" ] || [ "$1" = "--version" ]; then
+  cat "${base_dir}/version.txt" && printf '\n'
+  exit 0
+fi
+
+run_docker() {
+  $DOCKER_SUDO env DOCKER_BUILDKIT=1 docker "$@"
+}
+
+build_image() {
+  run_docker build \
+    --build-arg "BUILD_USER_ID=$(id -u)" \
+    --build-arg "BUILD_GROUP_ID=$(id -g)" \
+    --tag "$IMAGE_NAME" \
+    "$context_dir"
+}
+
+image_exists() {
+  run_docker inspect "$IMAGE_NAME" > /dev/null 2>&1
+}
+
+pull_base_image() {
+  run_docker pull archlinux:base-devel
+}
+
+run_image() {
+  working_dir="$1"
+  shift
+  run_docker run \
+    --interactive \
+    --tty \
+    --rm \
+    --mount "type=bind,source=${working_dir},destination=/package" \
+    "$IMAGE_NAME" "$@"
+}
+
+remove_image() {
+  run_docker image remove --force "$IMAGE_NAME"
+}
+
+prune_images() {
+  run_docker image prune --force
+}
+
+command="$1"
+shift
+case "$command" in
+  update)
+    build_image
+    ;;
+  base-update)
+    pull_base_image && build_image
+    ;;
+  build)
+    if [ "$#" -lt 1 ]; then
+      printf 'A working directory for makepkg is required\n'
+      exit 1
+    fi
+    working_dir="$(realpath "$1")"
+    shift
+    if ! image_exists; then
+      printf 'The makepkg docker image does not exist yet. Please build it with: %s update\n' "$script_name"
+      exit 1
+    fi
+    run_image "$working_dir" "$@"
+    ;;
+  remove)
+    remove_image && prune_images
+    ;;
+  is-ready)
+    if image_exists; then
+      exit 0
+    else
+      exit 1
+    fi
+    ;;
+  docker)
+    run_docker "$@"
+    ;;
+  *)
+    printf 'Unknown command: %s\n' "$command"
+    exit 1
+    ;;
+esac
+
+exit $?

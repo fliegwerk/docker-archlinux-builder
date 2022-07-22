@@ -15,69 +15,63 @@ git clone https://github.com/fliegwerk/docker-archlinux-builder.git
 cd docker-archlinux-builder
 ```
 
-Prepare the build environment:
+Add binaries to your path:
 
 ```shell
-./arch-builder.sh create
+export PATH="$(pwd)/.bin:$PATH"
 ```
 
-Initialize a new build setup for your package.
-Enter the package name of the AUR package you want to build:
+## Usage
+
+First, prepare the makepkg image:
 
 ```shell
-./arch-builder.sh get-aur ungoogled-chromium
+docker-makepkg update
 ```
 
-Or if you want to build an official package, use:
+Then, get the build files for the package you want to build:
 
 ```shell
-./arch-builder.sh get-official linux
+git clone --depth 1 --branch "packages/${package_name}" --single-branch 'https://github.com/archlinux/svntogit-packages.git' "$package_name"
+# or
+git clone --depth 1 --single-branch "https://aur.archlinux.org/${package_name}.git"
 ```
 
-Build your initialized package:
+Finally, build the package with the helper script:
 
 ```shell
-./arch-builder.sh build ungoogled-chromium
+docker-makepkg build "${package_name}/trunk"
+# or
+docker-makepkg build "${package_name}"
 ```
 
-That's it!
+> Tip: You can enable headless mode by passing `headless` as build argument to makepkg.
+
+Finished!
 
 ## Update
 
 Because Archlinux is a rolling-release distribution,
-it's important that you keep the arch-builder image up-to-date.
-The build step updates the system before building the specified package.
-Some dependencies can only be updated, if you rebuild the arch-builder image.
+it's important that you keep the makepkg image up-to-date.
 
-### Update build instructions
-
-Simply get the package again.
-The arch-builder script detects an existing repository and only pulls in the latest changes:
+Run regularly:
 
 ```shell
-./arch-builder.sh get-aur ungoogled-chromium
+docker-makepkg update
 ```
 
-And build your package with the new instruction set:
+And update monthly the base image:
 
 ```shell
-./arch-builder.sh build ungoogled-chromium
-```
-
-### Update arch-builder image
-
-Simply call:
-
-```shell
-./arch-builder.sh rebuild
+docker-makepkg base-update
 ```
 
 ## Remove
 
-Remove the arch-builder image:
+Remove the makepkg image:
 
 ```shell
-./arch-builder.sh remove
+docker-makepkg remove
 ```
 
 Delete the git repository:

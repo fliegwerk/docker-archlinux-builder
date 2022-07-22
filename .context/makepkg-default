@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# install dependencies
+[ -r PKGBUILD ] && {
+  source PKGBUILD
+  yay --sync "${depends[@]}" "${makedepends[@]}"
+}
+
+# add trusted keys to keychain
+if [ -r "trusted-keys" ]; then
+  grep -v '^ *#' < trusted-keys | while IFS= read -r key; do
+    gpg --recv-key "$key"
+  done
+fi
+
+exec makepkg --syncdeps --clean --cleanbuild "$@"

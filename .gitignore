@@ -1,11 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# ignore package sources
-*/**/package
-
-# ignore packages
-*/**/*.tar.zst
-
 # Ignore everything but gitignore
 /**
 !/.gitignore
@@ -13,9 +7,12 @@
 # root project
 !/LICENSE
 !/README
-!/arch-builder.sh
-!/lib.sh
+!/version.txt
 
-# builder
-!/.builder
-!/.builder/**
+# binaries
+!/.bin
+!/.bin/**
+
+# docker build context
+!/.context
+!/.context/**

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# This script makes the current working directory writable for the current user.
+#
+# Note:
+#  This script assumes that all files below 
+#  the current working directory have the same user and group id.
+
+def_uid="$(stat -c '%u' .)"
+def_gid="$(stat -c '%g' .)"
+
+trap "sudo chown -R ""${def_uid}":"${def_gid}"" ." EXIT
+
+sudo chown -R "$(id -u):$(id -g)" .
+
+# run makepkg in headless
+if [ "$1" = "headless" ]; then
+  shift
+  exec makepkg-headless "$@"
+fi
+
+# run makepkg in default or custom mode
+if [ "$1" = "makepkg" ]; then
+  shift
+  exec makepkg-default "$@"
+fi
+
+# run any other command
+exec "$@"
