@@ -51,6 +51,7 @@ run_docker() {
 
 build_image() {
   run_docker build \
+    --build-arg "CACHEBUST=$(date +%s)" \
     --build-arg "BUILD_USER_ID=$(id -u)" \
     --build-arg "BUILD_GROUP_ID=$(id -g)" \
     --tag "$IMAGE_NAME" \

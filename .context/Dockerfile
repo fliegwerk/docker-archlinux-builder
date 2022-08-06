@@ -41,7 +41,7 @@ WORKDIR "$BUILD_DIR"
 ## everything below this comment is invalidated
 ## on every build call
 ##
-ARG CACHEBUST=1
+ARG CACHEBUST
 
 # update system packages and install needed base packages
 RUN --mount=type=cache,target=/var/cache/pacman/pkg \
